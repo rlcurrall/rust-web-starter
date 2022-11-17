@@ -1,0 +1,230 @@
+{
+  "db": "PostgreSQL",
+  "27b5d086dc440881c5be6960ea4a7f28cf1bcc06b8c32ada75f80c5b86a849b5": {
+    "describe": {
+      "columns": [
+        {
+          "name": "count",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Bool",
+          "Bool",
+          "Int4",
+          "Bool",
+          "Int4"
+        ]
+      }
+    },
+    "query": "SELECT COUNT(1) AS count FROM users\n        WHERE ($1 OR active = $2) AND ($3 OR age > $4) AND ($5 OR age < $6)"
+  },
+  "50293c2e54af11d4c2a553e29b671cef087a159c6ee7182d8ca929ecb748f3b7": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "DELETE FROM users WHERE id = $1"
+  },
+  "7b0b41e876e94ac3f2ea1d4571c8370a286fd03c64128f7f9addf36a3b7127a7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "email",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "age",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "active",
+          "ordinal": 4,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Bool",
+          "Int4"
+        ]
+      }
+    },
+    "query": "UPDATE users SET name = $1, email = $2, age = $3, active = $4 WHERE id = $5 RETURNING *"
+  },
+  "7fa018df5469c38672d570c682ea77204ab9c71c6ea245b69ab9f59ac2392ab6": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "email",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "age",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "active",
+          "ordinal": 4,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Bool",
+          "Bool",
+          "Int4",
+          "Bool",
+          "Int4",
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT * FROM users\n        WHERE ($1 OR active = $2) AND ($3 OR age > $4) AND ($5 OR age < $6)\n        LIMIT $7 OFFSET $8"
+  },
+  "843923b9a0257cf80f1dff554e7dc8fdfc05f489328e8376513124dfb42996e3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "email",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "age",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "active",
+          "ordinal": 4,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "SELECT * FROM users WHERE id = $1"
+  },
+  "a1926c6a106590c3674163cf60166ae211ff0d8e2fc49dbac2f0202ee2540e26": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "email",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "name",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "age",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "active",
+          "ordinal": 4,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Bool"
+        ]
+      }
+    },
+    "query": "INSERT INTO users (name, email, age, active) VALUES ($1, $2, $3, $4) RETURNING *"
+  }
+}

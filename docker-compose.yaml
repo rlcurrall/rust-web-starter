@@ -1,0 +1,42 @@
+version: "3.4"
+
+services:
+  app:
+    build:
+      context: .
+      target: runner
+    depends_on:
+      - database
+    restart: unless-stopped
+    volumes:
+      - ./conf:/app/conf:rw,cached
+    command: sh -c "./wait-for-it database:5432 -q -- ./server"
+    ports:
+      - target: 3000
+        published: 3000
+        protocol: tcp
+    environment: {}
+      # If you want to configure the app using env variables you can modify the following:
+      # NAME: app
+      # ENV: prod
+      # DEBUG: false
+      # JWT_PUB_KEY: "/app/conf/public.pem"
+      # DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}
+      # LOG.LEVEL: error
+      # LOG.FORMAT: json
+      # SERVER.ADDR: "0.0.0.0"
+      # SERVER.PORT: 3000
+      # SERVER.WORKERS: 4
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-15}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      # You should definitely change the password in production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

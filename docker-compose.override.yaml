@@ -1,0 +1,24 @@
+version: "3.4"
+
+# Development environment override
+services:
+  app:
+    extra_hosts:
+      # Ensure that host.docker.internal is correctly defined on Linux
+      - host.docker.internal:host-gateway
+    build:
+      target: dev_server
+    volumes:
+      - ./src:/app/src:rw,cached
+      - ./conf:/app/conf:rw,cached
+      - ./migrations:/app/migrations:rw,cached
+      - ./Cargo.toml:/app/Cargo.toml:rw,cached
+      - ./Cargo.lock:/app/Cargo.lock:rw,cached
+      - ./.env:/app/.env:rw,cached
+    command: bash -c "./wait-for-it database:5432 -q -- cargo watch -x run"
+
+  database:
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp

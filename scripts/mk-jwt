@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+##
+## Description:
+##   Create a signed JWT token using the provided private key using RS256
+##
+## Usage:
+##   mk-jwt filename
+##
+## Arguments:
+##   filename      Private key used to create the JWT. Defaults to "private.pem".
+##
+
+filename=${1:-private.pem}
+
+now=$( date +%s )
+iat="${now}"
+exp=$((${now} + 3600)) # expire 1 hour in the future
+
+header_raw='{"alg": "RS256", "typ": "JWT"}'
+payload_raw='{"iat":'"${iat}"',"exp":'"${exp}"',"sub":"username","scopes":[]}'
+
+header_b64=$(echo "${header_raw}" | openssl enc -base64 -A | tr '+/' '-_' | tr -d '=')
+payload_b64=$(echo "${payload_raw}" | openssl enc -base64 -A | tr '+/' '-_' | tr -d '=')
+content=$(printf "%s" "${header_b64}" "." "${payload_b64}")
+signature=$(printf %s "${content}" | openssl dgst -binary -sha256 -sign ${filename} | openssl enc -base64  | tr -d '\n=' | tr -- '+/' '-_')
+jwt=$(printf "%s" "${content}" "." "${signature}")
+
+echo "${jwt}"

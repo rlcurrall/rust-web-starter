@@ -1,0 +1,14 @@
+name = "app"
+env = "dev"
+debug = true
+jwt_pub_key = "./conf/public.pem"
+database_url = "postgres://app:!ChangeMe!@database/app"
+
+[log]
+level = "debug"
+format = "compact"
+
+[server]
+addr = "0.0.0.0"
+port = 3000
+workers = 4

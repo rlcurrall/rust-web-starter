@@ -1,0 +1,10 @@
+version: "3.4"
+
+# Production environment override
+services:
+  app:
+    environment: {}
+
+  database:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
