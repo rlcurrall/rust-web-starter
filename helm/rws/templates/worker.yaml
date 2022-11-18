@@ -1,0 +1,79 @@
+{{- range $job, $val := $.Values.queue.workers }}
+{{- $name := printf "%s-%s" "worker" .name -}}
+{{- $selectorData := dict "name" $name "Chart" $.Chart "Release" $.Release "Values" $.Values -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rws.fullname" $ }}-worker-{{ .name }}
+  labels:
+    {{- include "rws.labels" $selectorData | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "rws.selectorLabels" $selectorData | nindent 6 }}
+  template:
+    metadata:
+      {{- with $.Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "rws.selectorLabels" $selectorData | nindent 8 }}
+    spec:
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "rws.serviceAccountName" $ }}
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ $.Chart.Name }}-worker
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          image: "{{ $.Values.queue.image.repository }}:{{ $.Values.queue.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.queue.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ $.Release.Name }}-{{ $.Chart.Name }}-dynamic-env
+            - secretRef:
+                name: {{ $.Release.Name }}-{{ $.Chart.Name }}-dynamic-env
+          command:
+            - ./worker {{ .transports }}
+          volumeMounts:
+            - mountPath: /secrets
+              name: secrets-file
+          # startupProbe:
+          #   exec:
+          #     command: ["/bin/sh", "-c", "/bin/ps -ef | grep messenger:consume | grep -v grep"]
+          #   failureThreshold: 40
+          #   periodSeconds: 3
+          # readinessProbe:
+          #   exec:
+          #     command: ["/bin/sh", "-c", "/bin/ps -ef | grep messenger:consume | grep -v grep"]
+          #   periodSeconds: 3
+          # livenessProbe:
+          #   exec:
+          #     command: ["/bin/sh", "-c", "/bin/ps -ef | grep messenger:consume | grep -v grep"]
+          #   periodSeconds: 3
+          resources:
+            {{- if .resources }} {{ toYaml .resources | nindent 12 }}
+            {{- else }} {{ toYaml $.Values.queue.resources | nindent 12 }}
+            {{- end }}
+      volumes:
+      - name: secrets-file
+        secret:
+          secretName: {{ include "rws.fullname" $ }}
+          items:
+          - key: jwt_public_key
+            path: jwt-public.pem
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        {{- toYaml $.Values.affinity.server | nindent 8 }}
+      tolerations:
+        {{- toYaml $.Values.tolerations.server | nindent 8 }}
+---
+{{- end }}

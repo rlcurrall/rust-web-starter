@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-dynamic-file
+data:
+  {{- range $key, $value := .Values.server.configMapFile }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end -}}

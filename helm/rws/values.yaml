@@ -1,0 +1,164 @@
+# Default values for rws.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+server:
+  image:
+    repository: "chart-example.local/rust-web-starter/server"
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+
+  configMapEnv:
+    APP.ENV: prod
+    APP.DEBUG: false
+    APP.NAME: app
+    JWT_PUBLIC_KEY: /secrets/jwt-public.pem
+    LOG.FORMAT: full
+    LOG.LEVEL: debug,actix_server=error,sqlx=error
+
+  configMapFile: {}
+
+  secretsEnv:
+    DATABASE_URL: postgres://app:!ChangeMe!@localhost/app
+
+  secretsFile:
+    JWT_PUBLIC_KEY_FILE: "SECRET"
+
+queue:
+  image:
+    repository: "chart-example.local/rust-web-starter/worker"
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+
+  ###> cron-defaults ###
+  # You can alter these values per job below
+  resources:
+    limits:
+      cpu: 1
+      memory: 2048Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ###< cron-defaults ###
+
+  workers:
+    - name: prices-update
+      transports: prices_update
+
+cronjob:
+  restartPolicy: OnFailure
+  image:
+    repository: "chart-example.local/rust-web-starter/console"
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+
+  ###> cron-defaults ###
+  # You can alter these values per job below
+  concurrencyPolicy: Forbid
+  backoffLimit: 6
+  startingDeadlineSeconds: 120
+  activeDeadlineSeconds: 43200 #12 hours is the longest a job will run until it is force killed.
+  ###< cron-defaults ###
+
+  crons:
+    - name: say-hello
+      command: ./console say:hello
+      schedule: "0 * * * *"
+
+# Full configuration: https://github.com/bitnami/charts/tree/master/bitnami/postgresql
+postgresql:
+  enabled: true
+  # If bringing your own PostgreSQL, the full uri to use
+  url: postgresql://api-platform:!ChangeMe!@database:5432/api?serverVersion=13&charset=utf8
+  postgresqlUsername: "example"
+  postgresqlPassword: "!ChangeMe!"
+  postgresqlDatabase: "api"
+  # Persistent Volume Storage configuration.
+  # ref: https://kubernetes.io/docs/user-guide/persistent-volumes
+  persistence:
+    enabled: false
+  pullPolicy: IfNotPresent
+  image:
+    repository: bitnami/postgresql
+    tag: 13
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  server:
+    requests:
+      cpu: 15m
+      memory: 95Mi
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+replicaCount: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations:
+  cron: []
+  server: []
+
+affinity:
+  cron: {}
+  server: {}

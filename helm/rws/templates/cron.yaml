@@ -1,0 +1,77 @@
+{{- range $job, $val := .Values.cronjob.crons }}
+{{- $name := printf "%s-%s" "cronjob" .name -}}
+{{- $selectorData := dict "name" $name "Chart" $.Chart "Release" $.Release "Values" $.Values -}}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "rws.fullname" $ }}-cronjob-{{ .name }}
+  labels:
+    {{- include "rws.labels" $selectorData | nindent 4 }}
+spec:
+  schedule: {{ .schedule | quote }}
+  concurrencyPolicy: {{ .concurrencyPolicy | default $.Values.cronjob.concurrencyPolicy }}
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: {{ .startingDeadlineSeconds | default $.Values.cronjob.startingDeadlineSeconds }}
+  jobTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/cronjob: {{ include "rws.fullname" $ }}-cronjob-{{ .name }}
+    spec:
+      backoffLimit: {{ .backoffLimit | default $.Values.cronjob.backoffLimit }}
+      activeDeadlineSeconds: {{ .activeDeadlineSeconds | default $.Values.cronjob.activeDeadlineSeconds }}
+      template:
+        metadata:
+          {{- with $.Values.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          labels:
+            origin: cronjob
+            {{- include "rws.selectorLabels" $selectorData | nindent 12 }}
+            app.kubernetes.io/cronjob: {{ include "rws.fullname" $ }}-cronjob-{{ .name }}
+        spec:
+          {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          restartPolicy: {{ $.Values.cronjob.restartPolicy }}
+          serviceAccountName: {{ include "rws.serviceAccountName" $ }}
+          securityContext:
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: {{ $.Chart.Name }}-cronjob
+              securityContext:
+                {{- toYaml $.Values.securityContext | nindent 16 }}
+              image: "{{ $.Values.cronjob.image.repository }}:{{ $.Values.cronjob.image.tag | default $.Chart.AppVersion }}"
+              imagePullPolicy: {{ $.Values.cronjob.image.pullPolicy }}
+              envFrom:
+                - configMapRef:
+                    name: {{ $.Release.Name }}-{{ $.Chart.Name }}-dynamic-env
+                - secretRef:
+                    name: {{ $.Release.Name }}-{{ $.Chart.Name }}-dynamic-env
+              args:
+                - sh
+                - -c
+                - |
+                  {{ .command }}
+              volumeMounts:
+                - mountPath: /secrets
+                  name: secrets-file
+          volumes:
+          - name: secrets-file
+            secret:
+              secretName: {{ include "rws.fullname" $ }}
+              items:
+              - key: jwt_public_key
+                path: jwt-public.pem
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          affinity:
+            {{- toYaml $.Values.affinity.cron | nindent 12 }}
+          tolerations:
+            {{- toYaml $.Values.tolerations.cron | nindent 12 }}
+---
+{{- end }}
