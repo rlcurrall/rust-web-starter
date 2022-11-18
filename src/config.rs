@@ -4,14 +4,19 @@ use glob::glob;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Configuration {
+    pub app: AppConfig,
+    pub log: LogConfig,
+    pub server: ServerConfig,
+    pub database_url: String,
+    pub jwt_pub_key: PathBuf,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub name: String,
     pub env: Environment,
     pub debug: bool,
-    pub database_url: String,
-    pub jwt_pub_key: PathBuf,
-    pub log: LogConfig,
-    pub server: ServerConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,7 +49,7 @@ pub enum LogFormat {
     Compact,
 }
 
-pub fn get_config() -> AppConfig {
+pub fn get_config() -> Configuration {
     config::Config::builder()
         .add_source(
             glob("conf/*.toml")
@@ -55,6 +60,6 @@ pub fn get_config() -> AppConfig {
         .add_source(config::Environment::default())
         .build()
         .expect("failed to load configuration")
-        .try_deserialize::<AppConfig>()
+        .try_deserialize::<Configuration>()
         .expect("Failed to deserialize app configuration")
 }

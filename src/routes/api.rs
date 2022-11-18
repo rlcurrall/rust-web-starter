@@ -1,8 +1,8 @@
 use paperclip::actix::web::{self, ServiceConfig};
 
-use crate::{config::AppConfig, handlers::users, middleware::JwtAuth};
+use crate::{config::Configuration, handlers::users, middleware::JwtAuth};
 
-pub fn configure_api(config: &AppConfig) -> impl FnOnce(&mut ServiceConfig) {
+pub fn configure_api(config: &Configuration) -> impl FnOnce(&mut ServiceConfig) {
     let jwt_pub_key = config.jwt_pub_key.clone();
 
     let inner = |cfg: &mut ServiceConfig| {

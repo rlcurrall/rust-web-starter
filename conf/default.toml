@@ -1,8 +1,10 @@
+jwt_pub_key = "./conf/public.pem"
+database_url = "postgres://app:!ChangeMe!@database/app"
+
+[app]
 name = "app"
 env = "dev"
 debug = true
-jwt_pub_key = "./conf/public.pem"
-database_url = "postgres://app:!ChangeMe!@database/app"
 
 [log]
 level = "debug"
