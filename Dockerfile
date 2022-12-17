@@ -32,11 +32,13 @@ RUN cargo install cargo-watch
 
 COPY conf conf
 COPY migrations migrations
-COPY docker/wait-for-it ./wait-for-it
+COPY docker/server/entrypoint.sh ./entrypoint.sh
+COPY docker/server/wait-for-it.sh ./wait-for-it.sh
 COPY .env .
 
 EXPOSE 3000
 VOLUME [ "/usr/local/cargo" ]
+ENTRYPOINT [ "/app/entrypoint.sh" ]
 
 
 ################################################################################

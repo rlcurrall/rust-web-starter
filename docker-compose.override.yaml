@@ -15,7 +15,7 @@ services:
       - ./Cargo.toml:/app/Cargo.toml:rw,cached
       - ./Cargo.lock:/app/Cargo.lock:rw,cached
       - ./.env:/app/.env:rw,cached
-    command: bash -c "./wait-for-it database:5432 -q -- cargo watch -x run"
+    command: cargo watch -x run
 
   database:
     ports:

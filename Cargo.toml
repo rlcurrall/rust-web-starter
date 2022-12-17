@@ -9,7 +9,7 @@ edition = "2021"
 actix-web = "4.2.1"
 actix-web-httpauth = "0.8.0"
 anyhow = "1.0.66"
-clap = { version = "4.0.19", features = ["cargo"] }
+clap = { version = "4.0.19", features = ["cargo", "derive"] }
 config = "0.13.2"
 derive_more = "0.99.17"
 dotenvy = "0.15.6"

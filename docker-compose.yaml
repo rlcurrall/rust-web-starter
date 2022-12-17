@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./conf:/app/conf:rw,cached
-    command: sh -c "./wait-for-it database:5432 -q -- ./server"
+    command: ./server
     ports:
       - target: 3000
         published: 3000
