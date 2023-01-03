@@ -11,8 +11,11 @@
 
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source ${__dir}/mk-rsa-keys > /dev/null
-source ${__dir}/mk-jwt > jwt.txt
+# Generate RSA public/private keys
+${__dir}/jwt.sh -o conf key
 
-mv public.pem conf/public.pem
-mv private.pem conf/private.pem
+echo -e "\n"
+
+# Output JWT token to `jwt.txt` and echo to the console
+${__dir}/jwt.sh -e 172800 new user@example.com ./keys/private.pem > jwt.txt
+cat jwt.txt

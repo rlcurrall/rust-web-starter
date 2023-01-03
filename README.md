@@ -18,7 +18,7 @@ This will generate 3 files:
 If you need a new JWT token at any time you can simply run:
 
 ```bash
-./scripts/mk-jwt conf/private.pem
+./scripts/jwt new user@example.com conf/private.pem
 ```
 
 ### Starting the Server

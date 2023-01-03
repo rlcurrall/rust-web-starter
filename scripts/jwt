@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Set default expiration time to 3600 seconds (1 hour)
+exp=3600
+
+# Parse command-line arguments
+output_dir=''
+while getopts "e:ho:" opt; do
+  case $opt in
+    e) exp=$OPTARG ;;
+    h)
+      echo "Usage: jwt.sh [key|new] [-e EXPIRATION] [-o OUTPUT_DIR] [SUBJECT KEY_FILE]"
+      echo ""
+      echo "Generate RSA public/private keys or create a new JWT token using RSA keys."
+      echo ""
+      echo "Commands:"
+      echo "  key         Generate RSA public/private keys"
+      echo "  new         Create a new JWT token using RSA keys"
+      echo ""
+      echo "Options:"
+      echo "  -e EXP      Set the expiration time in seconds (default: 3600)"
+      echo "  -o DIR      Specify a directory to output the RSA keys (default: current directory)"
+      echo "  -h          Show this help message"
+      exit 0
+      ;;
+    o) output_dir=$OPTARG ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+# Validate input
+if [ $# -lt 1 ]; then
+  echo "Error: missing required argument: command (key|new)" >&2
+  exit 1
+fi
+command=$1
+shift
+
+case "$command" in
+  key)
+    # Generate RSA keys
+    mkdir -p $output_dir
+    openssl genrsa -out "$output_dir/private.pem" 2048
+    openssl rsa -in "$output_dir/private.pem" -outform PEM -pubout -out "$output_dir/public.pem"
+    echo "RSA keys generated: $output_dir/private.pem, $output_dir/public.pem"
+    ;;
+  new)
+    if [ $# -lt 2 ]; then
+      echo "Error: missing required arguments: SUBJECT KEY_FILE" >&2
+      exit 1
+    fi
+    subject=$1
+    key_file=$2
+
+    # Generate JWT token
+    header='{"alg":"RS256","typ":"JWT"}'
+    payload="{\"sub\":\"$subject\",\"exp\":$(($(date +%s)+exp))}"
+    header_b64=$(echo -n "$header" | base64 -w 0)
+    payload_b64=$(echo -n "$payload" | base64 -w 0)
+    signature=$(echo -n "$header_b64.$payload_b64" | openssl dgst -sha256 -sign "$key_file" | base64 -w 0)
+    jwt_token="$header_b64.$payload_b64.$signature"
+
+    echo "JWT token created: $jwt_token"
+    ;;
+  *)
+    echo "Error: invalid command: $command" >&2
+    exit 1
+    ;;
+esac
