@@ -58,10 +58,10 @@ case "$command" in
 
     # Generate JWT token
     header='{"alg":"RS256","typ":"JWT"}'
-    payload="{\"sub\":\"$subject\",\"exp\":$(($(date +%s)+exp))}"
-    header_b64=$(echo -n "$header" | base64 -w 0)
-    payload_b64=$(echo -n "$payload" | base64 -w 0)
-    signature=$(echo -n "$header_b64.$payload_b64" | openssl dgst -sha256 -sign "$key_file" | base64 -w 0)
+    payload="{\"sub\":\"$subject\",\"exp\":$(($(date +%s)+exp)), \"scopes\": []}"
+    header_b64=$(echo -n "$header" | base64 -w 0 | tr -d '=' | tr '/+' '_-')
+    payload_b64=$(echo -n "$payload" | base64 -w 0 | tr -d '=' | tr '/+' '_-')
+    signature=$(echo -n "$header_b64.$payload_b64" | openssl dgst -sha256 -sign "$key_file" -binary | base64 -w 0 | tr -d '=' | tr '/+' '_-')
     jwt_token="$header_b64.$payload_b64.$signature"
 
     echo "JWT token created: $jwt_token"
